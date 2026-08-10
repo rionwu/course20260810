@@ -21,7 +21,7 @@
 
   .course-name { font-size: 18px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
   .course-meta { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #6d4c41; margin-bottom: 10px; }
-  .course-desc { font-size: 13px; color: #8d6e63; line-height: 1.7; margin-bottom: 12px; white-space: pre-line;}
+  .course-desc { font-size: 13px; color: #8d6e63; line-height: 1.7; margin-bottom: 12px; white-space: pre-line; }
 
   .quota-bar { margin-bottom: 4px; }
   .quota-label { display: flex; justify-content: space-between; font-size: 12px; color: #8d6e63; margin-bottom: 5px; }
@@ -51,62 +51,37 @@
   .qrcode-img { width: 160px; height: 160px; border-radius: 8px; margin: 10px 0; }
   .line-btn { display: inline-block; background: #06c755; color: #fff; border-radius: 10px; padding: 10px 20px; text-decoration: none; font-weight: 700; }
   .loading { text-align: center; padding: 40px; color: #888; }
- /* 店面資訊與地圖樣式 */
-/* 店家資訊與地圖（固定於頁面底部且文字置中） */
-.store-info-box {
-  max-width: 520px;
-  margin: 30px auto 20px;
-  padding: 20px;
-  background: #fffdf8;
-  border: 1.5px solid #e8ddd4;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(120,80,50,0.07);
-  text-align: center; /* 👈 將整個區塊內的文字與內容置中 */
-}
-.store-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #3d2b1f;
-  margin-bottom: 8px;
-}
-.store-detail {
-  font-size: 14px;
-  color: #6d4c41;
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-.store-note {
-  font-size: 14px;
-  color: #d84315;
-  font-weight: 600;
-  background: #fbe9e7;
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin: 0 auto 15px; /* 👈 設定 auto 確保提示框本身也在中間 */
-  display: inline-block; /* 👈 讓背景框寬度貼合文字並居中 */
-}
-.map-container {
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  line-height: 0;
-}
-.map-container iframe {
-  width: 100%;
-  height: 250px;
-  border: 0;
-}
-}
+
+  /* 地點與地圖（置中樣式） */
+  .store-info-box {
+    max-width: 520px;
+    margin: 30px auto 20px;
+    padding: 20px;
+    background: #fffdf8;
+    border: 1.5px solid #e8ddd4;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(120,80,50,0.07);
+    text-align: center;
+  }
+  .store-title { font-size: 16px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
+  .store-detail { font-size: 14px; color: #6d4c41; line-height: 1.6; margin-bottom: 12px; }
+  .store-note {
+    font-size: 14px; color: #d84315; font-weight: 600;
+    background: #fbe9e7; padding: 8px 12px; border-radius: 8px;
+    margin: 0 auto 15px; display: inline-block;
+  }
+  .map-container { width: 100%; border-radius: 12px; overflow: hidden; line-height: 0; }
+  .map-container iframe { width: 100%; height: 250px; border: 0; }
 </style>
 </head>
 <body>
 
-<!-- 課程與動態報名表載入區 -->
+<!-- 動態報名表載入區 -->
 <div id="app">
   <div class="loading">載入課程中⋯</div>
 </div>
 
-<!-- 📍 固定在所有報名表最下方的地點資訊 -->
+<!-- 📍 固定在頁面最下方的地點資訊 -->
 <div class="store-info-box">
   <div class="store-title">📍 上課地點資訊</div>
   <div class="store-detail">
@@ -206,7 +181,6 @@
     });
   }
 
-  // 動態產出填寫項目 HTML
   function renderFieldsHtml(courseId, fields) {
     return fields.map((f, idx) => {
       const req = f.required ? ' *' : '';
@@ -279,13 +253,11 @@
     if (!str) return '';
     const div = document.createElement('div'); div.textContent = str; return div.innerHTML;
   }
- function formatText(str) {
-  if (!str) return '';
-  let clean = escapeHtml(str);
-  // 將使用者輸入的 <br> 或 <br/>（被轉義後的）以及真實 Enter 鍵轉為 <br>
-  return clean
-    .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
-    .replace(/\n/g, '<br>');
+
+  function formatText(str) {
+    if (!str) return '';
+    let clean = escapeHtml(str);
+    return clean.replace(/&lt;br\s*\/?&gt;/gi, '<br>').replace(/\n/g, '<br>');
   }
 })();
 </script>
