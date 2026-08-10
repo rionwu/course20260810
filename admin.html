@@ -104,7 +104,7 @@
       <div class="course-item">
         <div>
           <strong>${escapeHtml(c.name)}</strong>
-          <p style="font-size:12px;color:#666;">🗓 ${escapeHtml(c.date)} | 欄位數量: ${c.fields.length} 個</p>
+          <p style="font-size:12px;color:#666;">🗓 ${escapeHtml(c.date)} | 欄位數量: ${(c.fields || []).length} 個</p>
         </div>
         <div>
           <button class="btn btn-edit" onclick="editCourse('${c.id}')">編輯</button>
