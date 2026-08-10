@@ -21,7 +21,7 @@
 
   .course-name { font-size: 18px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
   .course-meta { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #6d4c41; margin-bottom: 10px; }
-  .course-desc { font-size: 13px; color: #8d6e63; line-height: 1.7; margin-bottom: 12px; }
+  .course-desc { font-size: 13px; color: #8d6e63; line-height: 1.7; margin-bottom: 12px; white-space: pre-line;}
 
   .quota-bar { margin-bottom: 4px; }
   .quota-label { display: flex; justify-content: space-between; font-size: 12px; color: #8d6e63; margin-bottom: 5px; }
@@ -101,7 +101,7 @@
             <span>📍 ${escapeHtml(course.location)}</span>
             <span>🪡 ${escapeHtml(course.fee)}</span>
           </div>
-          <div class="course-desc">${escapeHtml(course.desc)}</div>
+          <div class="course-desc">${formatText(course.desc)}</div>
           <div class="quota-bar">
             <div class="quota-label"><span>剩餘名額</span><span>${remaining} / ${course.max} 人</span></div>
             <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
@@ -215,6 +215,14 @@
   function escapeHtml(str) {
     if (!str) return '';
     const div = document.createElement('div'); div.textContent = str; return div.innerHTML;
+  }
+ function formatText(str) {
+  if (!str) return '';
+  let clean = escapeHtml(str);
+  // 將使用者輸入的 <br> 或 <br/>（被轉義後的）以及真實 Enter 鍵轉為 <br>
+  return clean
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
+    .replace(/\n/g, '<br>');
   }
 })();
 </script>
