@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手作課程報名</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #faf8f5; color: #3d2b1f; font-size: 15px; padding: 20px 12px; }
+  .page-header { text-align: center; padding: 12px 16px 24px; }
+  .page-title { font-size: 22px; font-weight: 700; color: #3d2b1f; letter-spacing: 2px; margin-bottom: 6px; }
+  .page-sub { font-size: 15px; color: #8d6e63; line-height: 1.7; }
+
+  .course-list { display: flex; flex-direction: column; gap: 20px; max-width: 520px; margin: 0 auto; }
+  .course-card { background: #fffdf8; border: 1.5px solid #e8ddd4; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(120,80,50,0.07); }
+  .course-card.is-full { opacity: 0.7; }
+
+  .card-header { padding: 18px 20px 14px; cursor: pointer; user-select: none; }
+  .course-tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; background: #e8f5e9; color: #388e3c; font-weight: 600; }
+  .course-tag.full-tag { background: #fce4ec; color: #c62828; }
+
+  .course-name { font-size: 18px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
+  .course-meta { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #6d4c41; margin-bottom: 10px; }
+  .course-desc { font-size: 13px; color: #8d6e63; line-height: 1.7; margin-bottom: 12px; }
+
+  .quota-bar { margin-bottom: 4px; }
+  .quota-label { display: flex; justify-content: space-between; font-size: 12px; color: #8d6e63; margin-bottom: 5px; }
+  .bar-track { height: 7px; background: #ede0d4; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; background: #81c784; }
+  .bar-fill.warn { background: #ffb74d; }
+  .bar-fill.full { background: #e57373; }
+
+  .expand-hint { text-align: center; font-size: 12px; color: #bcaaa4; margin-top: 10px; }
+  .card-form { display: none; padding: 0 20px 20px; border-top: 1px solid #ede0d4; }
+  .card-form.open { display: block; }
+
+  .form-title { font-size: 13px; color: #8d6e63; padding: 14px 0 12px; font-weight: 600; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: #5d4037; margin-bottom: 6px; font-weight: 600; }
+  .field input[type=text] { width: 100%; padding: 10px 13px; border: 1.5px solid #d7ccc8; border-radius: 10px; font-size: 15px; background: #fffdf8; }
+
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .radio-opt { flex: 1; min-width: 80px; }
+  .radio-opt input { display: none; }
+  .radio-opt label { display: block; text-align: center; padding: 10px 6px; border: 1.5px solid #d7ccc8; border-radius: 10px; cursor: pointer; font-size: 14px; background: #fdf5ee; }
+  .radio-opt input:checked + label { background: #e8f5e9; border-color: #81c784; color: #2e7d32; font-weight: 700; }
+
+  .btn-submit { width: 100%; padding: 13px; background: #6d9e6a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .success-block { display: none; padding: 20px; text-align: center; border-top: 1px solid #ede0d4; }
+  .success-block.show { display: block; }
+  .qrcode-img { width: 160px; height: 160px; border-radius: 8px; margin: 10px 0; }
+  .line-btn { display: inline-block; background: #06c755; color: #fff; border-radius: 10px; padding: 10px 20px; text-decoration: none; font-weight: 700; }
+  .loading { text-align: center; padding: 40px; color: #888; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="loading">載入課程中⋯</div>
+</div>
+
+<script>
+(function () {
+  const API_URL = "https://script.google.com/macros/s/AKfycbz2eOXof2aI46lauWA1uMX5iYC-Kh6ZCa-khoveNx00yu68AnWvrWsu_qnjUCeVJHtLzw/exec";
+  const ref = new URLSearchParams(window.location.search).get('ref') || "";
+
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => renderAll(data))
+    .catch(() => { document.getElementById('app').innerHTML = '<div class="loading">載入失敗，請重新整理</div>'; });
+
+  function renderAll(courses) {
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      <div class="page-header">
+        <div class="page-title">🌿 手作課程報名</div>
+        <div class="page-sub">每堂課皆在i99景美店舉辦，歡迎帶家人朋友一起來！<br>場地費低消99元，飲料Bar無限暢飲</div>
+      </div>
+      <div class="course-list" id="courseList"></div>
+    `;
+
+    const list = document.getElementById('courseList');
+    if (!courses || courses.length === 0) {
+      list.innerHTML = '<div class="loading">目前無上架課程</div>';
+      return;
+    }
+
+    courses.forEach(course => {
+      const remaining = course.max - course.count;
+      const pct = Math.round((course.count / course.max) * 100);
+      const card = document.createElement('div');
+      card.className = 'course-card' + (course.isFull ? ' is-full' : '');
+
+      card.innerHTML = `
+        <div class="card-header" id="header-${course.id}">
+          <div class="course-tag ${course.isFull ? 'full-tag' : ''}">${course.isFull ? '已額滿' : '公益課程'}</div>
+          <div class="course-name">${escapeHtml(course.name)}</div>
+          <div class="course-meta">
+            <span>🗓 ${escapeHtml(course.date)}</span>
+            <span>📍 ${escapeHtml(course.location)}</span>
+            <span>🪡 ${escapeHtml(course.fee)}</span>
+          </div>
+          <div class="course-desc">${escapeHtml(course.desc)}</div>
+          <div class="quota-bar">
+            <div class="quota-label"><span>剩餘名額</span><span>${remaining} / ${course.max} 人</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          </div>
+          ${course.isFull ? '' : '<div class="expand-hint">▼ 點此展開報名</div>'}
+        </div>
+
+        ${course.isFull ? '<div style="padding:15px;text-align:center;color:#c62828;">本期已額滿 🙏</div>' : `
+          <div class="card-form" id="form-${course.id}">
+            <div class="form-title">✏️ 填寫報名資料</div>
+            <form id="innerForm-${course.id}">
+              ${renderFieldsHtml(course.id, course.fields)}
+              <div class="field">
+                <label style="color:#bcaaa4">邀請人</label>
+                <input type="text" readonly value="${escapeHtml(ref)}" style="background:#f5f0eb;color:#bcaaa4">
+              </div>
+              <button type="button" class="btn-submit" id="btn-${course.id}">送出報名 →</button>
+            </form>
+          </div>
+          <div class="success-block" id="success-${course.id}">
+            <div style="font-size:36px">🎉</div>
+            <div style="font-size:18px;font-weight:700;color:#388e3c">報名成功！</div>
+            <p style="margin:10px 0;font-size:14px;color:#6d4c41">請加入 LINE 群組掌握最新消息</p>
+            <img class="qrcode-img" src="${course.qrUrl}">
+            <br>
+            <a class="line-btn" href="${course.lineUrl}" target="_blank">點此加入 LINE 群組</a>
+          </div>
+        `}
+      `;
+
+      list.appendChild(card);
+
+      if (!course.isFull) {
+        document.getElementById('header-' + course.id).onclick = () => {
+          document.getElementById('form-' + course.id).classList.toggle('open');
+        };
+        document.getElementById('btn-' + course.id).onclick = () => submitForm(course);
+      }
+    });
+  }
+
+  // 動態產出填寫項目 HTML
+  function renderFieldsHtml(courseId, fields) {
+    return fields.map((f, idx) => {
+      const req = f.required ? ' *' : '';
+      if (f.type === 'radio') {
+        const optsHtml = f.options.map((opt, oIdx) => `
+          <div class="radio-opt">
+            <input type="radio" name="f_${courseId}_${idx}" id="opt_${courseId}_${idx}_${oIdx}" value="${escapeHtml(opt)}">
+            <label for="opt_${courseId}_${idx}_${oIdx}">${escapeHtml(opt)}</label>
+          </div>
+        `).join('');
+        return `<div class="field"><label>${escapeHtml(f.label)}${req}</label><div class="radio-group">${optsHtml}</div></div>`;
+      } else {
+        return `<div class="field"><label>${escapeHtml(f.label)}${req}</label><input type="text" id="input_${courseId}_${idx}" placeholder="請輸入${escapeHtml(f.label)}"></div>`;
+      }
+    }).join('');
+  }
+
+  function submitForm(course) {
+    const answers = {};
+    for (let i = 0; i < course.fields.length; i++) {
+      const f = course.fields[i];
+      let val = "";
+      if (f.type === 'radio') {
+        const checked = document.querySelector(`input[name="f_${course.id}_${i}"]:checked`);
+        if (checked) val = checked.value;
+      } else {
+        val = document.getElementById(`input_${course.id}_${i}`).value.trim();
+      }
+
+      if (f.required && !val) {
+        alert(`請填寫/選擇「${f.label}」`);
+        return;
+      }
+      answers[f.label] = val;
+    }
+
+    const btn = document.getElementById('btn-' + course.id);
+    btn.disabled = true;
+    btn.textContent = '送出中...';
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        courseId: course.id,
+        formAnswers: answers,
+        ref: ref
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (!res.success && res.reason === 'full') {
+          alert('瞬間名額已額滿');
+          location.reload();
+          return;
+        }
+        if (res.success) {
+          document.getElementById('form-' + course.id).style.display = 'none';
+          document.getElementById('success-' + course.id).classList.add('show');
+        } else {
+          alert('送出失敗，請重試');
+          btn.disabled = false;
+        }
+      });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div'); div.textContent = str; return div.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>

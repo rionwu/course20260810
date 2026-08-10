@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>課程後台管理系統</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f6f8; padding: 20px; color: #333; }
+  .container { max-width: 850px; margin: 0 auto; }
+  .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px; }
+  h2 { font-size: 18px; margin-bottom: 16px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #555; }
+  .field input, .field textarea, .field select { width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn { padding: 8px 14px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+  .btn-primary { background: #2e7d32; color: #fff; }
+  .btn-danger { background: #c62828; color: #fff; }
+  .btn-edit { background: #0277bd; color: #fff; }
+
+  .form-builder { background: #fafafa; border: 1px dashed #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+  .field-item { display: flex; gap: 10px; align-items: center; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; }
+
+  .course-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 12px 0; }
+  #loginArea { max-width: 400px; margin: 100px auto; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card" id="loginArea">
+    <h2>🔒 管理員登入</h2>
+    <div class="field" style="margin: 15px 0;"><input type="password" id="adminPwd" placeholder="請輸入密碼"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="login()">登入後台</button>
+  </div>
+
+  <div id="mainArea" style="display:none;">
+    <div class="card">
+      <h2 id="formTitle">➕ 新增 / 編輯課程</h2>
+      <form id="courseForm">
+        <input type="hidden" id="c_id">
+        <div class="field"><label>課程名稱 *</label><input type="text" id="c_name" required></div>
+        <div class="grid-2">
+          <div class="field"><label>課程日期時間 *</label><input type="text" id="c_date" required></div>
+          <div class="field"><label>名額上限 *</label><input type="number" id="c_max" required value="15"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>上課地點</label><input type="text" id="c_location" value="i99 COFFEE 景美店"></div>
+          <div class="field"><label>費用說明</label><input type="text" id="c_fee" value="工本費 $80／份"></div>
+        </div>
+        <div class="field"><label>課程簡介</label><textarea id="c_desc" rows="2"></textarea></div>
+        <div class="grid-2">
+          <div class="field"><label>LINE 群組連結</label><input type="text" id="c_lineUrl"></div>
+          <div class="field"><label>LINE QR Code 圖片網址</label><input type="text" id="c_qrUrl"></div>
+        </div>
+
+        <!-- 動態表單項目設定區 -->
+        <div class="form-builder">
+          <label style="font-weight:700;margin-bottom:10px;display:block;">📝 報名表填寫項目設定</label>
+          <div id="fieldsContainer"></div>
+          <button type="button" class="btn btn-edit" onclick="addField()">+ 新增填寫項目</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="saveBtn">儲存課程設定</button>
+        <button type="button" class="btn" onclick="resetForm()">取消重置</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>📚 目前所有課程</h2>
+      <div id="courseList">載入中...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbz2eOXof2aI46lauWA1uMX5iYC-Kh6ZCa-khoveNx00yu68AnWvrWsu_qnjUCeVJHtLzw/exec";
+  let pwd = "", coursesData = [], currentFields = [];
+
+  function login() {
+    pwd = document.getElementById('adminPwd').value.trim();
+    if (pwd) loadCourses();
+  }
+
+  function loadCourses() {
+    fetch(`${API_URL}?action=getAllCourses&pwd=${encodeURIComponent(pwd)}`)
+      .then(res => res.json())
+      .then(res => {
+        if (!res.success) return alert('密碼錯誤');
+        document.getElementById('loginArea').style.display = 'none';
+        document.getElementById('mainArea').style.display = 'block';
+        coursesData = res.data;
+        renderList();
+        if (currentFields.length === 0) resetForm();
+      });
+  }
+
+  function renderList() {
+    const list = document.getElementById('courseList');
+    list.innerHTML = coursesData.map(c => `
+      <div class="course-item">
+        <div>
+          <strong>${escapeHtml(c.name)}</strong>
+          <p style="font-size:12px;color:#666;">🗓 ${escapeHtml(c.date)} | 欄位數量: ${c.fields.length} 個</p>
+        </div>
+        <div>
+          <button class="btn btn-edit" onclick="editCourse('${c.id}')">編輯</button>
+          <button class="btn btn-danger" onclick="deleteCourse('${c.id}', '${escapeHtml(c.name)}')">刪除</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderFieldsBuilder() {
+    const container = document.getElementById('fieldsContainer');
+    container.innerHTML = currentFields.map((f, idx) => `
+      <div class="field-item">
+        <input type="text" placeholder="項目標題 (例: 姓名)" value="${escapeHtml(f.label)}" onchange="currentFields[${idx}].label = this.value">
+        <select onchange="currentFields[${idx}].type = this.value; renderFieldsBuilder();">
+          <option value="text" ${f.type === 'text' ? 'selected' : ''}>單行文字</option>
+          <option value="radio" ${f.type === 'radio' ? 'selected' : ''}>單選按鈕</option>
+        </select>
+        ${f.type === 'radio' ? `<input type="text" placeholder="選項 (逗號分開: 有,無)" value="${escapeHtml((f.options||[]).join(','))}" onchange="currentFields[${idx}].options = this.value.split(',').map(s=>s.trim())">` : ''}
+        <button type="button" class="btn btn-danger" onclick="currentFields.splice(${idx},1); renderFieldsBuilder();">刪除</button>
+      </div>
+    `).join('');
+  }
+
+  function addField() {
+    currentFields.push({ label: "新填寫項目", type: "text", required: true });
+    renderFieldsBuilder();
+  }
+
+  document.getElementById('courseForm').onsubmit = function(e) {
+    e.preventDefault();
+    const courseObj = {
+      id: document.getElementById('c_id').value || ('course_' + Date.now()),
+      name: document.getElementById('c_name').value.trim(),
+      date: document.getElementById('c_date').value.trim(),
+      max: Number(document.getElementById('c_max').value),
+      location: document.getElementById('c_location').value.trim(),
+      fee: document.getElementById('c_fee').value.trim(),
+      desc: document.getElementById('c_desc').value.trim(),
+      lineUrl: document.getElementById('c_lineUrl').value.trim(),
+      qrUrl: document.getElementById('c_qrUrl').value.trim(),
+      fields: currentFields
+    };
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'saveCourse', pwd: pwd, course: courseObj })
+    }).then(res => res.json()).then(res => {
+      if (res.success) { alert('儲存成功'); resetForm(); loadCourses(); }
+    });
+  };
+
+  function editCourse(id) {
+    const c = coursesData.find(item => item.id === id);
+    if (!c) return;
+    document.getElementById('c_id').value = c.id;
+    document.getElementById('c_name').value = c.name;
+    document.getElementById('c_date').value = c.date;
+    document.getElementById('c_max').value = c.max;
+    document.getElementById('c_location').value = c.location;
+    document.getElementById('c_fee').value = c.fee;
+    document.getElementById('c_desc').value = c.desc;
+    document.getElementById('c_lineUrl').value = c.lineUrl;
+    document.getElementById('c_qrUrl').value = c.qrUrl;
+    currentFields = c.fields || [];
+    renderFieldsBuilder();
+  }
+
+  function deleteCourse(id, name) {
+    if (confirm(`確定要刪除「${name}」嗎？（報名紀錄頁籤將會保留備份）`)) {
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'deleteCourse', pwd: pwd, courseId: id })
+      }).then(res => res.json()).then(res => { if (res.success) loadCourses(); });
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('c_id').value = '';
+    document.getElementById('courseForm').reset();
+    currentFields = [
+      { label: "姓名", type: "text", required: true },
+      { label: "手做經驗", type: "radio", options: ["有", "無"], required: true }
+    ];
+    renderFieldsBuilder();
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div'); div.textContent = str; return div.innerHTML;
+  }
+</script>
+</body>
+</html>
