@@ -90,6 +90,7 @@
       const pct = Math.round((course.count / course.max) * 100);
       const card = document.createElement('div');
       card.className = 'course-card' + (course.isFull ? ' is-full' : '');
+      const fields = course.fields || [];
 
       card.innerHTML = `
         <div class="card-header" id="header-${course.id}">
@@ -112,7 +113,7 @@
           <div class="card-form" id="form-${course.id}">
             <div class="form-title">✏️ 填寫報名資料</div>
             <form id="innerForm-${course.id}">
-              ${renderFieldsHtml(course.id, course.fields)}
+              ${renderFieldsHtml(course.id, fields)}
               <div class="field">
                 <label style="color:#bcaaa4">邀請人</label>
                 <input type="text" readonly value="${escapeHtml(ref)}" style="background:#f5f0eb;color:#bcaaa4">
@@ -147,7 +148,8 @@
     return fields.map((f, idx) => {
       const req = f.required ? ' *' : '';
       if (f.type === 'radio') {
-        const optsHtml = f.options.map((opt, oIdx) => `
+        const opts = f.options || [];
+        const optsHtml = opts.map((opt, oIdx) => `
           <div class="radio-opt">
             <input type="radio" name="f_${courseId}_${idx}" id="opt_${courseId}_${idx}_${oIdx}" value="${escapeHtml(opt)}">
             <label for="opt_${courseId}_${idx}_${oIdx}">${escapeHtml(opt)}</label>
@@ -161,9 +163,10 @@
   }
 
   function submitForm(course) {
+    const fields = course.fields || [];
     const answers = {};
-    for (let i = 0; i < course.fields.length; i++) {
-      const f = course.fields[i];
+    for (let i = 0; i < fields.length; i++) {
+      const f = fields[i];
       let val = "";
       if (f.type === 'radio') {
         const checked = document.querySelector(`input[name="f_${course.id}_${i}"]:checked`);
