@@ -104,7 +104,8 @@
   function renderList() {
     const list = document.getElementById('courseList');
     list.innerHTML = coursesData.map(c => {
-      const datesStr = (c.dates || [c.date || '無設定']).join(', ');
+      let datesArr = parseDates(c);
+      const datesStr = datesArr.join(', ');
       return `
         <div class="course-item">
           <div>
@@ -118,6 +119,17 @@
         </div>
       `;
     }).join('');
+  }
+
+  // 統一時間解析工具函式
+  function parseDates(c) {
+    if (Array.isArray(c.dates) && c.dates.length > 0) {
+      return c.dates;
+    }
+    if (typeof c.date === 'string' && c.date.trim() !== '') {
+      return c.date.split(/[,;\n]/).map(s => s.trim()).filter(s => s !== '');
+    }
+    return ['無設定'];
   }
 
   function renderDatesBuilder() {
@@ -166,8 +178,9 @@
     const courseObj = {
       id: document.getElementById('c_id').value || ('course_' + Date.now()),
       name: document.getElementById('c_name').value.trim(),
-      date: filteredDates[0], // 相容舊版欄位
-      dates: filteredDates,   // 新增多時段陣列
+      // 關鍵修正：將所有時間用逗號分隔連起來存入 date 欄位，這樣 Google Sheet 的單一儲存格就能完整寫入所有時間！
+      date: filteredDates.join(', '), 
+      dates: filteredDates,   // 同時保留陣列格式
       max: Number(document.getElementById('c_max').value),
       location: document.getElementById('c_location').value.trim(),
       fee: document.getElementById('c_fee').value.trim(),
@@ -191,8 +204,11 @@
     if (!c) return;
     document.getElementById('c_id').value = c.id;
     document.getElementById('c_name').value = c.name;
-    currentDates = (c.dates && c.dates.length > 0) ? c.dates : [c.date || ""];
+    
+    // 關鍵修正：自動解析 Google Sheet 回傳的字串或陣列
+    currentDates = parseDates(c);
     renderDatesBuilder();
+
     document.getElementById('c_max').value = c.max;
     document.getElementById('c_location').value = c.location;
     document.getElementById('c_fee').value = c.fee;
