@@ -130,15 +130,19 @@
       card.className = 'course-card' + (course.isFull ? ' is-full' : '');
       const fields = course.fields || [];
       
-      // 關鍵修正：確保優先讀取多時段陣列 (course.dates)
+      // 強化解析：相容 Array、逗號/分號/換行分隔字串、以及舊版單一 date 欄位
+      let rawDates = course.dates || course.date || [];
       let timeOptions = [];
-      if (Array.isArray(course.dates) && course.dates.length > 0) {
-        timeOptions = course.dates.filter(d => d && d.trim() !== "");
-      } else if (course.date) {
-        timeOptions = [course.date];
+
+      if (Array.isArray(rawDates)) {
+        timeOptions = rawDates;
+      } else if (typeof rawDates === 'string') {
+        timeOptions = rawDates.split(/[,;\n|]/);
       }
-      
-      // 組合列表顯示所有時段
+
+      // 清除空白與無效值
+      timeOptions = timeOptions.map(t => String(t).trim()).filter(t => t.length > 0);
+
       const timeDisplayStr = timeOptions.length > 0 ? timeOptions.join('<br>⏰ ') : '未設定時間';
 
       card.innerHTML = `
@@ -193,7 +197,7 @@
     });
   }
 
-  // 渲染上課時間選單（若有多個時間則轉為下拉選單）
+  // 渲染上課時間選單 (多個時間自動改用 <select> 選單)
   function renderTimeSelectHtml(courseId, options) {
     if (!options || options.length === 0) return '';
     if (options.length === 1) {
@@ -225,7 +229,6 @@
     const fields = course.fields || [];
     const answers = {};
 
-    // 取得報名者選擇的課程時間
     const timeEl = document.getElementById(`time_${course.id}`);
     if (timeEl) {
       answers["上課時間"] = timeEl.value;
@@ -286,7 +289,7 @@
   function formatText(str) {
     if (!str) return '';
     let clean = escapeHtml(str);
-    return clean.replace(/&lt;br\s*\/?&gt;/gi, '<br>').replace(/<br\s*\/?>/gi, '<br>').replace(/\n/g, '<br>');
+    return clean.replace(/<br\s*\/?>/gi, '<br>').replace(/\n/g, '<br>');
   }
 })();
 </script>
