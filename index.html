@@ -6,51 +6,53 @@
 <title>手作課程報名</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #faf8f5; color: #3d2b1f; font-size: 15px; padding: 20px 12px; }
+  /* 全域基本字級調大 (15px -> 19px) */
+  body { font-family: "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #faf8f5; color: #3d2b1f; font-size: 19px; padding: 20px 12px; }
   .page-header { text-align: center; padding: 12px 16px 24px; }
-  .page-title { font-size: 22px; font-weight: 700; color: #3d2b1f; letter-spacing: 2px; margin-bottom: 6px; }
-  .page-sub { font-size: 15px; color: #8d6e63; line-height: 1.7; }
+  /* 標題與副標題字級調大 */
+  .page-title { font-size: 26px; font-weight: 700; color: #3d2b1f; letter-spacing: 2px; margin-bottom: 8px; }
+  .page-sub { font-size: 18px; color: #8d6e63; line-height: 1.7; }
 
   .course-list { display: flex; flex-direction: column; gap: 20px; max-width: 520px; margin: 0 auto; }
   .course-card { background: #fffdf8; border: 1.5px solid #e8ddd4; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(120,80,50,0.07); }
   .course-card.is-full { opacity: 0.7; }
 
   .card-header { padding: 18px 20px 14px; cursor: pointer; user-select: none; }
-  .course-tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; background: #e8f5e9; color: #388e3c; font-weight: 600; }
+  .course-tag { display: inline-block; font-size: 14px; padding: 4px 12px; border-radius: 20px; margin-bottom: 8px; background: #e8f5e9; color: #388e3c; font-weight: 600; }
   .course-tag.full-tag { background: #fce4ec; color: #c62828; }
 
-  .course-name { font-size: 18px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
-  .course-meta { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #6d4c41; margin-bottom: 10px; }
-  .course-desc { font-size: 13px; color: #8d6e63; line-height: 1.7; margin-bottom: 12px; white-space: pre-line; }
+  .course-name { font-size: 22px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
+  .course-meta { display: flex; flex-direction: column; gap: 6px; font-size: 16px; color: #6d4c41; margin-bottom: 10px; }
+  .course-desc { font-size: 16px; color: #8d6e63; line-height: 1.7; margin-bottom: 12px; white-space: pre-line; }
 
   .quota-bar { margin-bottom: 4px; }
-  .quota-label { display: flex; justify-content: space-between; font-size: 12px; color: #8d6e63; margin-bottom: 5px; }
-  .bar-track { height: 7px; background: #ede0d4; border-radius: 4px; overflow: hidden; }
+  .quota-label { display: flex; justify-content: space-between; font-size: 15px; color: #8d6e63; margin-bottom: 5px; }
+  .bar-track { height: 9px; background: #ede0d4; border-radius: 4px; overflow: hidden; }
   .bar-fill { height: 100%; background: #81c784; }
   .bar-fill.warn { background: #ffb74d; }
   .bar-fill.full { background: #e57373; }
 
-  .expand-hint { text-align: center; font-size: 12px; color: #bcaaa4; margin-top: 10px; }
+  .expand-hint { text-align: center; font-size: 15px; color: #bcaaa4; margin-top: 10px; }
   .card-form { display: none; padding: 0 20px 20px; border-top: 1px solid #ede0d4; }
   .card-form.open { display: block; }
 
-  .form-title { font-size: 13px; color: #8d6e63; padding: 14px 0 12px; font-weight: 600; }
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 13px; color: #5d4037; margin-bottom: 6px; font-weight: 600; }
-  .field input[type=text] { width: 100%; padding: 10px 13px; border: 1.5px solid #d7ccc8; border-radius: 10px; font-size: 15px; background: #fffdf8; }
+  .form-title { font-size: 16px; color: #8d6e63; padding: 14px 0 12px; font-weight: 600; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 16px; color: #5d4037; margin-bottom: 6px; font-weight: 600; }
+  .field input[type=text], .field select { width: 100%; padding: 12px 14px; border: 1.5px solid #d7ccc8; border-radius: 10px; font-size: 18px; background: #fffdf8; }
 
   .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
-  .radio-opt { flex: 1; min-width: 80px; }
+  .radio-opt { flex: 1; min-width: 90px; }
   .radio-opt input { display: none; }
-  .radio-opt label { display: block; text-align: center; padding: 10px 6px; border: 1.5px solid #d7ccc8; border-radius: 10px; cursor: pointer; font-size: 14px; background: #fdf5ee; }
+  .radio-opt label { display: block; text-align: center; padding: 12px 8px; border: 1.5px solid #d7ccc8; border-radius: 10px; cursor: pointer; font-size: 17px; background: #fdf5ee; }
   .radio-opt input:checked + label { background: #e8f5e9; border-color: #81c784; color: #2e7d32; font-weight: 700; }
 
-  .btn-submit { width: 100%; padding: 13px; background: #6d9e6a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .btn-submit { width: 100%; padding: 15px; background: #6d9e6a; color: #fff; border: none; border-radius: 10px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px; }
   .success-block { display: none; padding: 20px; text-align: center; border-top: 1px solid #ede0d4; }
   .success-block.show { display: block; }
-  .qrcode-img { width: 160px; height: 160px; border-radius: 8px; margin: 10px 0; }
-  .line-btn { display: inline-block; background: #06c755; color: #fff; border-radius: 10px; padding: 10px 20px; text-decoration: none; font-weight: 700; }
-  .loading { text-align: center; padding: 40px; color: #888; }
+  .qrcode-img { width: 180px; height: 180px; border-radius: 8px; margin: 12px 0; }
+  .line-btn { display: inline-block; background: #06c755; color: #fff; border-radius: 10px; padding: 12px 24px; text-decoration: none; font-weight: 700; font-size: 17px; }
+  .loading { text-align: center; padding: 40px; color: #888; font-size: 18px; }
 
   /* 地點與地圖（置中樣式） */
   .store-info-box {
@@ -63,25 +65,23 @@
     box-shadow: 0 2px 10px rgba(120,80,50,0.07);
     text-align: center;
   }
-  .store-title { font-size: 16px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
-  .store-detail { font-size: 14px; color: #6d4c41; line-height: 1.6; margin-bottom: 12px; }
+  .store-title { font-size: 19px; font-weight: 700; color: #3d2b1f; margin-bottom: 8px; }
+  .store-detail { font-size: 16px; color: #6d4c41; line-height: 1.6; margin-bottom: 12px; }
   .store-note {
-    font-size: 14px; color: #d84315; font-weight: 600;
-    background: #fbe9e7; padding: 8px 12px; border-radius: 8px;
+    font-size: 16px; color: #d84315; font-weight: 600;
+    background: #fbe9e7; padding: 10px 14px; border-radius: 8px;
     margin: 0 auto 15px; display: inline-block;
   }
   .map-container { width: 100%; border-radius: 12px; overflow: hidden; line-height: 0; }
-  .map-container iframe { width: 100%; height: 250px; border: 0; }
+  .map-container iframe { width: 100%; height: 260px; border: 0; }
 </style>
 </head>
 <body>
 
-<!-- 動態報名表載入區 -->
 <div id="app">
   <div class="loading">載入課程中⋯</div>
 </div>
 
-<!-- 📍 固定在頁面最下方的地點資訊 -->
 <div class="store-info-box">
   <div class="store-title">📍 上課地點資訊</div>
   <div class="store-detail">
@@ -129,13 +129,17 @@
       const card = document.createElement('div');
       card.className = 'course-card' + (course.isFull ? ' is-full' : '');
       const fields = course.fields || [];
+      
+      // 處理多個時段的顯示與下拉選單
+      const timeOptions = (course.dates || (course.date ? [course.date] : []));
+      const timeDisplayStr = timeOptions.join('<br>⏰ ');
 
       card.innerHTML = `
         <div class="card-header" id="header-${course.id}">
           <div class="course-tag ${course.isFull ? 'full-tag' : ''}">${course.isFull ? '已額滿' : '公益課程'}</div>
           <div class="course-name">${escapeHtml(course.name)}</div>
           <div class="course-meta">
-            <span>⏰ ${escapeHtml(course.date)}</span>
+            <span>⏰ ${timeDisplayStr}</span>
             <span>📍 ${escapeHtml(course.location)}</span>
             <span>🪡 ${escapeHtml(course.fee)}</span>
           </div>
@@ -147,10 +151,11 @@
           ${course.isFull ? '' : '<div class="expand-hint">▼ 點此展開報名</div>'}
         </div>
 
-        ${course.isFull ? '<div style="padding:15px;text-align:center;color:#c62828;">本期已額滿 🙏</div>' : `
+        ${course.isFull ? '<div style="padding:15px;text-align:center;color:#c62828;font-size:17px;">本期已額滿 🙏</div>' : `
           <div class="card-form" id="form-${course.id}">
             <div class="form-title">✏️ 填寫報名資料</div>
             <form id="innerForm-${course.id}">
+              ${renderTimeSelectHtml(course.id, timeOptions)}
               ${renderFieldsHtml(course.id, fields)}
               <div class="field">
                 <label style="color:#bcaaa4">邀請人</label>
@@ -160,9 +165,9 @@
             </form>
           </div>
           <div class="success-block" id="success-${course.id}">
-            <div style="font-size:36px">🎉</div>
-            <div style="font-size:18px;font-weight:700;color:#388e3c">報名成功！</div>
-            <p style="margin:10px 0;font-size:14px;color:#6d4c41">請加入 LINE 群組掌握最新消息</p>
+            <div style="font-size:40px">🎉</div>
+            <div style="font-size:22px;font-weight:700;color:#388e3c">報名成功！</div>
+            <p style="margin:10px 0;font-size:16px;color:#6d4c41">請加入 LINE 群組掌握最新消息</p>
             <img class="qrcode-img" src="${course.qrUrl}">
             <br>
             <a class="line-btn" href="${course.lineUrl}" target="_blank">點此加入 LINE 群組</a>
@@ -179,6 +184,16 @@
         document.getElementById('btn-' + course.id).onclick = () => submitForm(course);
       }
     });
+  }
+
+  // 渲染上課時間選單
+  function renderTimeSelectHtml(courseId, options) {
+    if (!options || options.length === 0) return '';
+    if (options.length === 1) {
+      return `<div class="field"><label>選擇上課時間 *</label><input type="text" id="time_${courseId}" value="${escapeHtml(options[0])}" readonly style="background:#f5f0eb;"></div>`;
+    }
+    const optsHtml = options.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('');
+    return `<div class="field"><label>選擇上課時間 *</label><select id="time_${courseId}">${optsHtml}</select></div>`;
   }
 
   function renderFieldsHtml(courseId, fields) {
@@ -202,6 +217,13 @@
   function submitForm(course) {
     const fields = course.fields || [];
     const answers = {};
+
+    // 取得選擇的課程時間
+    const timeEl = document.getElementById(`time_${course.id}`);
+    if (timeEl) {
+      answers["上課時間"] = timeEl.value;
+    }
+
     for (let i = 0; i < fields.length; i++) {
       const f = fields[i];
       let val = "";
@@ -257,7 +279,7 @@
   function formatText(str) {
     if (!str) return '';
     let clean = escapeHtml(str);
-    return clean.replace(/&lt;br\s*\/?&gt;/gi, '<br>').replace(/\n/g, '<br>');
+    return clean.replace(/<br\s*\/?>/gi, '<br>').replace(/\n/g, '<br>');
   }
 })();
 </script>
