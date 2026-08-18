@@ -43,21 +43,24 @@
       <form id="courseForm">
         <input type="hidden" id="c_id">
         <div class="field"><label>課程名稱 *</label><input type="text" id="c_name" required></div>
+        
+        <div class="form-builder">
+          <label style="font-weight:700;margin-bottom:6px;display:block;">⏰ 上課時間設定 (可新增多個時段) *</label>
+          <div id="datesContainer"></div>
+          <button type="button" class="btn btn-edit" onclick="addDateField()">+ 新增上課時段</button>
+        </div>
+
         <div class="grid-2">
-          <div class="field"><label>課程日期時間 *</label><input type="text" id="c_date" required></div>
           <div class="field"><label>名額上限 *</label><input type="number" id="c_max" required value="15"></div>
-        </div>
-        <div class="grid-2">
           <div class="field"><label>上課地點</label><input type="text" id="c_location" value="i99 COFFEE 景美店"></div>
-          <div class="field"><label>費用說明</label><input type="text" id="c_fee" value="工本費 $80／份"></div>
         </div>
+        <div class="field"><label>費用說明</label><input type="text" id="c_fee" value="工本費 $80／份"></div>
         <div class="field"><label>課程簡介</label><textarea id="c_desc" rows="2"></textarea></div>
         <div class="grid-2">
           <div class="field"><label>LINE 群組連結</label><input type="text" id="c_lineUrl"></div>
           <div class="field"><label>LINE QR Code 圖片網址</label><input type="text" id="c_qrUrl"></div>
         </div>
 
-        <!-- 動態表單項目設定區 -->
         <div class="form-builder">
           <label style="font-weight:700;margin-bottom:10px;display:block;">📝 報名表填寫項目設定</label>
           <div id="fieldsContainer"></div>
@@ -78,7 +81,7 @@
 
 <script>
   const API_URL = "https://script.google.com/macros/s/AKfycbx9xcDe67IYetRoBZ0UkEG4Rqx1YzUuEyx2EH8MXxzXILHzEjMD4ULv2koTnB7mOHVk/exec";
-  let pwd = "", coursesData = [], currentFields = [];
+  let pwd = "", coursesData = [], currentFields = [], currentDates = ["8/9 (日) 14:00 - 16:00"];
 
   function login() {
     pwd = document.getElementById('adminPwd').value.trim();
@@ -100,18 +103,36 @@
 
   function renderList() {
     const list = document.getElementById('courseList');
-    list.innerHTML = coursesData.map(c => `
-      <div class="course-item">
-        <div>
-          <strong>${escapeHtml(c.name)}</strong>
-          <p style="font-size:12px;color:#666;">🗓 ${escapeHtml(c.date)} | 欄位數量: ${(c.fields || []).length} 個</p>
+    list.innerHTML = coursesData.map(c => {
+      const datesStr = (c.dates || [c.date || '無設定']).join(', ');
+      return `
+        <div class="course-item">
+          <div>
+            <strong>${escapeHtml(c.name)}</strong>
+            <p style="font-size:12px;color:#666;">🗓 ${escapeHtml(datesStr)} | 欄位: ${(c.fields || []).length} 個</p>
+          </div>
+          <div>
+            <button class="btn btn-edit" onclick="editCourse('${c.id}')">編輯</button>
+            <button class="btn btn-danger" onclick="deleteCourse('${c.id}', '${escapeHtml(c.name)}')">刪除</button>
+          </div>
         </div>
-        <div>
-          <button class="btn btn-edit" onclick="editCourse('${c.id}')">編輯</button>
-          <button class="btn btn-danger" onclick="deleteCourse('${c.id}', '${escapeHtml(c.name)}')">刪除</button>
-        </div>
+      `;
+    }).join('');
+  }
+
+  function renderDatesBuilder() {
+    const container = document.getElementById('datesContainer');
+    container.innerHTML = currentDates.map((d, idx) => `
+      <div class="field-item">
+        <input type="text" placeholder="例如: 8/9 (日) 14:00 - 16:00" value="${escapeHtml(d)}" onchange="currentDates[${idx}] = this.value">
+        ${currentDates.length > 1 ? `<button type="button" class="btn btn-danger" onclick="currentDates.splice(${idx},1); renderDatesBuilder();">刪除</button>` : ''}
       </div>
     `).join('');
+  }
+
+  function addDateField() {
+    currentDates.push("");
+    renderDatesBuilder();
   }
 
   function renderFieldsBuilder() {
@@ -136,10 +157,17 @@
 
   document.getElementById('courseForm').onsubmit = function(e) {
     e.preventDefault();
+    const filteredDates = currentDates.map(d => d.trim()).filter(d => d !== "");
+    if (filteredDates.length === 0) {
+      alert('請至少填寫一個上課時間');
+      return;
+    }
+
     const courseObj = {
       id: document.getElementById('c_id').value || ('course_' + Date.now()),
       name: document.getElementById('c_name').value.trim(),
-      date: document.getElementById('c_date').value.trim(),
+      date: filteredDates[0], // 相容舊版欄位
+      dates: filteredDates,   // 新增多時段陣列
       max: Number(document.getElementById('c_max').value),
       location: document.getElementById('c_location').value.trim(),
       fee: document.getElementById('c_fee').value.trim(),
@@ -163,7 +191,8 @@
     if (!c) return;
     document.getElementById('c_id').value = c.id;
     document.getElementById('c_name').value = c.name;
-    document.getElementById('c_date').value = c.date;
+    currentDates = (c.dates && c.dates.length > 0) ? c.dates : [c.date || ""];
+    renderDatesBuilder();
     document.getElementById('c_max').value = c.max;
     document.getElementById('c_location').value = c.location;
     document.getElementById('c_fee').value = c.fee;
@@ -187,6 +216,8 @@
   function resetForm() {
     document.getElementById('c_id').value = '';
     document.getElementById('courseForm').reset();
+    currentDates = ["8/9 (日) 14:00 - 16:00"];
+    renderDatesBuilder();
     currentFields = [
       { label: "姓名", type: "text", required: true },
       { label: "手做經驗", type: "radio", options: ["有", "無"], required: true }
