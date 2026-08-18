@@ -6,10 +6,8 @@
 <title>手作課程報名</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  /* 全域基本字級調大 (15px -> 19px) */
   body { font-family: "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif; background: #faf8f5; color: #3d2b1f; font-size: 19px; padding: 20px 12px; }
   .page-header { text-align: center; padding: 12px 16px 24px; }
-  /* 標題與副標題字級調大 */
   .page-title { font-size: 26px; font-weight: 700; color: #3d2b1f; letter-spacing: 2px; margin-bottom: 8px; }
   .page-sub { font-size: 18px; color: #8d6e63; line-height: 1.7; }
 
@@ -54,7 +52,6 @@
   .line-btn { display: inline-block; background: #06c755; color: #fff; border-radius: 10px; padding: 12px 24px; text-decoration: none; font-weight: 700; font-size: 17px; }
   .loading { text-align: center; padding: 40px; color: #888; font-size: 18px; }
 
-  /* 地點與地圖（置中樣式） */
   .store-info-box {
     max-width: 520px;
     margin: 30px auto 20px;
@@ -99,7 +96,8 @@
 
 <script>
 (function () {
-  const API_URL = "https://script.google.com/macros/s/AKfycbx9xcDe67IYetRoBZ0UkEG4Rqx1YzUuEyx2EH8MXxzXILHzEjMD4ULv2koTnB7mOHVk/exec";
+  // 關鍵修正：同步更新為最新部署的 GAS API 網址
+  const API_URL = "https://script.google.com/macros/s/AKfycbxgXkJ2EnFV_xt7rPpKjZxyDVERGjfWGqcYY_S7BkzXPNYORGWcX6Jc8oze0YpjrvP0/exec";
   const ref = new URLSearchParams(window.location.search).get('ref') || "";
 
   fetch(API_URL)
@@ -130,7 +128,6 @@
       card.className = 'course-card' + (course.isFull ? ' is-full' : '');
       const fields = course.fields || [];
       
-      // 強化解析：相容 Array、逗號/分號/換行分隔字串、以及舊版單一 date 欄位
       let rawDates = course.dates || course.date || [];
       let timeOptions = [];
 
@@ -140,7 +137,6 @@
         timeOptions = rawDates.split(/[,;\n|]/);
       }
 
-      // 清除空白與無效值
       timeOptions = timeOptions.map(t => String(t).trim()).filter(t => t.length > 0);
 
       const timeDisplayStr = timeOptions.length > 0 ? timeOptions.join('<br>⏰ ') : '未設定時間';
@@ -197,7 +193,6 @@
     });
   }
 
-  // 渲染上課時間選單 (多個時間自動改用 <select> 選單)
   function renderTimeSelectHtml(courseId, options) {
     if (!options || options.length === 0) return '';
     if (options.length === 1) {
