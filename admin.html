@@ -80,6 +80,7 @@
 </div>
 
 <script>
+  // 最新部署 API 網址
   const API_URL = "https://script.google.com/macros/s/AKfycbzvFCoiteynWMM3d-4nETUZiGbVWXeQ3dczXSg_dkvFNxfMR52x48Gez-79PGiccto/exec";
   let pwd = "", coursesData = [], currentFields = [], currentDates = ["8/9 (日) 14:00 - 16:00"];
 
@@ -105,7 +106,7 @@
     const list = document.getElementById('courseList');
     list.innerHTML = coursesData.map(c => {
       let datesArr = parseDates(c);
-      const datesStr = datesArr.join(', ');
+      const datesStr = datesArr.join(' | ');
       return `
         <div class="course-item">
           <div>
@@ -121,15 +122,14 @@
     }).join('');
   }
 
-  // 統一時間解析工具函式
   function parseDates(c) {
     if (Array.isArray(c.dates) && c.dates.length > 0) {
       return c.dates;
     }
     if (typeof c.date === 'string' && c.date.trim() !== '') {
-      return c.date.split(/[,;\n]/).map(s => s.trim()).filter(s => s !== '');
+      return c.date.split(/[,;\n|]/).map(s => s.trim()).filter(s => s !== '');
     }
-    return ['無設定'];
+    return ['未設定時間'];
   }
 
   function renderDatesBuilder() {
@@ -178,9 +178,8 @@
     const courseObj = {
       id: document.getElementById('c_id').value || ('course_' + Date.now()),
       name: document.getElementById('c_name').value.trim(),
-      // 關鍵修正：將所有時間用逗號分隔連起來存入 date 欄位，這樣 Google Sheet 的單一儲存格就能完整寫入所有時間！
-      date: filteredDates.join(', '), 
-      dates: filteredDates,   // 同時保留陣列格式
+      dates: filteredDates, // 主要以陣列傳遞給 GAS
+      date: filteredDates.join('\n'), // 相容欄位
       max: Number(document.getElementById('c_max').value),
       location: document.getElementById('c_location').value.trim(),
       fee: document.getElementById('c_fee').value.trim(),
@@ -205,7 +204,6 @@
     document.getElementById('c_id').value = c.id;
     document.getElementById('c_name').value = c.name;
     
-    // 關鍵修正：自動解析 Google Sheet 回傳的字串或陣列
     currentDates = parseDates(c);
     renderDatesBuilder();
 
