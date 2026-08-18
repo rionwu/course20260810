@@ -96,8 +96,7 @@
 
 <script>
 (function () {
-  // 關鍵修正：同步更新為最新部署的 GAS API 網址
-  const API_URL = "https://script.google.com/macros/s/AKfycbzvFCoiteynWMM3d-4nETUZiGbVWXeQ3dczXSg_dkvFNxfMR52x48Gez-79PGiccto/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbzTJ0x8DrniFSpA_B2AgR6h_Ucd4ekVScTov_WldSjuM58QbX0mbTYT1l3BFh0Z590/exec";
   const ref = new URLSearchParams(window.location.search).get('ref') || "";
 
   fetch(API_URL)
@@ -128,13 +127,13 @@
       card.className = 'course-card' + (course.isFull ? ' is-full' : '');
       const fields = course.fields || [];
       
-      let rawDates = course.dates || course.date || [];
+      let rawDates = (course.dates && course.dates.length > 0) ? course.dates : course.date;
       let timeOptions = [];
 
       if (Array.isArray(rawDates)) {
         timeOptions = rawDates;
       } else if (typeof rawDates === 'string') {
-        timeOptions = rawDates.split(/[,;\n|]/);
+        timeOptions = rawDates.split(/[\n,;|]/);
       }
 
       timeOptions = timeOptions.map(t => String(t).trim()).filter(t => t.length > 0);
