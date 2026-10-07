@@ -37,7 +37,7 @@
   .form-title { font-size: 16px; color: #8d6e63; padding: 14px 0 12px; font-weight: 600; }
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 16px; color: #5d4037; margin-bottom: 6px; font-weight: 600; }
-  .field input[type=text], .field select { width: 100%; padding: 12px 14px; border: 1.5px solid #d7ccc8; border-radius: 10px; font-size: 18px; background: #fffdf8; }
+  .field input[type=text], .field input[type=email], .field select { width: 100%; padding: 12px 14px; border: 1.5px solid #d7ccc8; border-radius: 10px; font-size: 18px; background: #fffdf8; }
 
   .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
   .radio-opt { flex: 1; min-width: 90px; }
@@ -186,13 +186,10 @@
             </form>
           </div>
           <div class="success-block" id="success-${course.id}">
-            <div style="font-size:40px">🎉</div>
-            <div style="font-size:22px;font-weight:700;color:#388e3c">報名成功！</div>
-            <p style="margin:10px 0;font-size:16px;color:#6d4c41">請加入 LINE 群組掌握最新消息</p>
-            <img class="qrcode-img" src="${course.qrUrl}">
-            <br>
-            <a class="line-btn" href="${course.lineUrl}" target="_blank">點此加入 LINE 群組</a>
-          </div>
+  <div style="font-size:40px">🎉</div>
+  <div style="font-size:22px;font-weight:700;color:#388e3c">報名成功！</div>
+  <p style="margin:10px 0;font-size:16px;color:#6d4c41;line-height:1.7">確認信已寄至您的信箱，<br>內含課程資訊與 LINE 群組連結。<br>若未收到，請查看垃圾郵件匣。</p>
+</div>
         `}
       `;
 
@@ -229,7 +226,7 @@
         `).join('');
         return `<div class="field"><label>${escapeHtml(f.label)}${req}</label><div class="radio-group">${optsHtml}</div></div>`;
       } else {
-        return `<div class="field"><label>${escapeHtml(f.label)}${req}</label><input type="text" id="input_${courseId}_${idx}" placeholder="請輸入${escapeHtml(f.label)}"></div>`;
+        return `<div class="field"><label>${escapeHtml(f.label)}${req}</label><input type="${f.label === 'Email' ? 'email' : 'text'}" id="input_${courseId}_${idx}" placeholder="請輸入${escapeHtml(f.label)}"></div>`;
       }
     }).join('');
   }
@@ -257,6 +254,7 @@
         alert(`請填寫/選擇「${f.label}」`);
         return;
       }
+     if (f.label === 'Email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { alert('請輸入正確的 Email'); return; }
       answers[f.label] = val;
     }
 
@@ -273,7 +271,7 @@
         ref: ref
       })
     })
-      .then(res => res.json())
+            .then(res => res.json())
       .then(res => {
         if (!res.success && res.reason === 'full') {
           alert('瞬間名額已額滿');
@@ -284,11 +282,18 @@
           document.getElementById('form-' + course.id).style.display = 'none';
           document.getElementById('success-' + course.id).classList.add('show');
         } else {
-          alert('送出失敗，請重試');
+          alert(res.reason === 'bad_email' ? 'Email 格式不正確' : '送出失敗，請重試');
           btn.disabled = false;
+          btn.textContent = '送出報名 →';
         }
+      })
+      .catch(() => {
+        alert('網路異常，請重試');
+        btn.disabled = false;
+        btn.textContent = '送出報名 →';
       });
   }
+  
 
   function escapeHtml(str) {
     if (!str) return '';
