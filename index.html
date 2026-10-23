@@ -112,7 +112,9 @@
 <script>
 (function () {
   const API_URL = "https://script.google.com/macros/s/AKfycbwsYilUqsYCYlB15D0AsD-ZbDR7Wza9CoDZJHWrlUSAMY55ZPg2cPxvUhjLQTIbj2p3/exec";
-  const ref = new URLSearchParams(window.location.search).get('ref') || "";
+  const ref = new URLSearchParams(window.location.search).get('ref')
+         || new URLSearchParams(window.location.hash.slice(1)).get('ref')
+         || "";
 
   fetch(API_URL)
     .then(res => res.json())
